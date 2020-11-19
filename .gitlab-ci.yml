@@ -1,0 +1,17 @@
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  before_script:
+    - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+  script:
+    - docker build -t $DOCKER_USER/$CONTAINER_NAME:$CI_COMMIT_SHA .
+    - docker push $DOCKER_USER/$CONTAINER_NAME:$CI_COMMIT_SHA
+
+deploy:
+  stage: deploy
+  script:
+    - sed -i "s/COMMIT/$(echo "${CI_COMMIT_SHA}")/" kubernetes/deployment.yaml
+    - kubectl apply -f kubernetes
